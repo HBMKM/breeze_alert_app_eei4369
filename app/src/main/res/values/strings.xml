@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Breeze Alert</string>
+    <string name="my_api_key">YOUR_API_KEY_HERE</string>
+</resources>
