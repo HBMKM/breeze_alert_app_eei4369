@@ -70,7 +70,19 @@ public class AlertActivity extends AppCompatActivity implements SensorEventListe
         dbHelper = new BreezeAlertDBHelper(this);
         prefs = getSharedPreferences("BreezeAlertSettings", MODE_PRIVATE);
 
-        locationValue.setText("📍 Location : Coastal Risk Zone");
+        // Get current location status from SharedPreferences
+        //boolean inRiskZone = prefs.getBoolean("isCoastal", false);
+
+        //if (inRiskZone) {
+            //locationValue.setText("📍 Location : Coastal Risk Zone");
+            //suggestionMessage.setText("Move indoors for safety");
+            //suggestionMessage.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        //} else {
+            //locationValue.setText("📍 Location : Safe Zone");
+            //suggestionMessage.setText("You are safe");
+            //suggestionMessage.setTextColor(getResources().getColor(android.R.color.black));
+        //}
+
 
         backButton.setOnClickListener(v -> finish());
 
@@ -102,6 +114,16 @@ public class AlertActivity extends AppCompatActivity implements SensorEventListe
         if (accelerometerSensor != null) {
             sensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
+
+        // Update location immediately when screen is visible
+        boolean inRiskZone = prefs.getBoolean("isCoastal", false);
+
+        if (inRiskZone) {
+            locationValue.setText("📍 Location : Coastal Risk Zone");
+        } else {
+            locationValue.setText("📍 Location : Safe Zone");
+        }
+
     }
 
     @Override
@@ -153,20 +175,48 @@ public class AlertActivity extends AppCompatActivity implements SensorEventListe
     }
 
     private void updateWarningAndSuggestion() {
-        if (currentHumidity >= 70) {
-            warningMessage.setText("High Humidity Detected");
+        // Get location risk
+        boolean inRiskZone = prefs.getBoolean("isCoastal", false);
+
+        // Update location text
+        if (inRiskZone) {
+            locationValue.setText("📍 Location : Coastal Risk Zone");
+        } else {
+            locationValue.setText("📍 Location : Safe Zone");
+        }
+
+        // Determine warning and suggestion
+        if (currentHumidity >= 70 && inRiskZone) {
+            // High humidity AND in risk zone → critical
+            warningMessage.setText("⚠ High Humidity & Coastal Risk!");
             warningMessage.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-            suggestionMessage.setText("Move to indoor");
+            suggestionMessage.setText("Move indoors immediately!");
             suggestionMessage.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
             playAlertSound();
+        } else if (currentHumidity >= 70) {
+            // High humidity only
+            warningMessage.setText("High Humidity Detected");
+            warningMessage.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            suggestionMessage.setText("Move indoors immediately");
+            suggestionMessage.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            playAlertSound();
+        } else if (inRiskZone) {
+            // Coastal risk only
+            warningMessage.setText("Coastal Risk Zone");
+            warningMessage.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
+            suggestionMessage.setText("Be cautious");
+            suggestionMessage.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
+            stopSoundIfPlaying();
         } else {
+            // Safe zone + normal humidity
             warningMessage.setText("Humidity Normal");
             warningMessage.setTextColor(getResources().getColor(android.R.color.black));
-            suggestionMessage.setText("No action needed");
+            suggestionMessage.setText("Your device is safe");
             suggestionMessage.setTextColor(getResources().getColor(android.R.color.black));
             stopSoundIfPlaying();
         }
     }
+
 
     private void playAlertSound() {
         if (mediaPlayer == null) {

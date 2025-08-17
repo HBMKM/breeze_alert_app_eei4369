@@ -53,8 +53,8 @@ public class HomeActivity extends AppCompatActivity implements SensorEventListen
         lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         accelerometerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-        locationText.setText("📍 Current Location : Coastal Risk Zone");
-        safetyNoteText.setText("Move indoors for safety");
+        //locationText.setText("📍 Current Location : Coastal Risk Zone");
+        //safetyNoteText.setText("Move indoors for safety");
 
         alertButton.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, AlertActivity.class)));
         locationButton.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, LocationActivity.class)));
@@ -65,6 +65,18 @@ public class HomeActivity extends AppCompatActivity implements SensorEventListen
         settingsIcon.setOnClickListener(v -> startActivity(new Intent(HomeActivity.this, SettingsActivity.class)));
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
+        // Update HomeActivity location status based on LocationActivity
+        boolean inRiskZone = prefs.getBoolean("isCoastal", false);
+
+        if (inRiskZone) {
+            locationText.setText("📍 Current Location : Coastal Risk Zone");
+            safetyNoteText.setText("Move indoors for safety");
+        } else {
+            locationText.setText("📍 Current Location : Safe Zone");
+            safetyNoteText.setText("Your device is safe");
+        }
+
     }
 
     @Override
@@ -93,6 +105,18 @@ public class HomeActivity extends AppCompatActivity implements SensorEventListen
         } else {
             motionText.setText("Motion sensor disabled");
         }
+
+        // Update live location status dynamically
+        boolean inRiskZone = prefs.getBoolean("isCoastal", false);
+
+        if (inRiskZone) {
+            locationText.setText("📍 Current Location : Coastal Risk Zone");
+            safetyNoteText.setText("Move indoors for safety");
+        } else {
+            locationText.setText("📍 Current Location : Safe Zone");
+            safetyNoteText.setText("Your device is safe");
+        }
+
     }
 
     @Override
